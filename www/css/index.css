@@ -1,3 +1,7 @@
+body {
+    margin: 10px 50px 50px 50px;
+}
+
 #load-btn-hidden {
   height: 0px;
   visibility: hidden;
@@ -5,7 +9,7 @@
 }
 
 #canvas-div {
-    height: 800px;
+    height: 600px;
     width: 540px;
     overflow-y: auto;
     background: #eeeeee;

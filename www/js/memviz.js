@@ -2,6 +2,10 @@
     "use strict";
 
     const ImageWidth = 512;
+    const Patern = 2;
+    // pattern 0: rgba = [d0, d1, d2, d3]
+    // pattern 1: rgba = [d0, d1, d2, 0xff]
+    // pattern 2: rgba = [d0[7:6], d0[5:4], d0[3:2], d0[1:0]]
 
     $('#load-btn').on('click', function() {
         $('#load-btn-hidden').click();
@@ -9,8 +13,9 @@
 
     $('#load-btn-hidden').change(function(event){
         let file = event.target.files[0];
-        let reader = new FileReader();
+        $('#fname-text').text(file.name);
         console.log('file:', file);
+        let reader = new FileReader();
         show_sandclock();
         reader.readAsArrayBuffer(file);
         reader.onload = function(f){
@@ -19,31 +24,36 @@
             while (buff.length % (ImageWidth * 4)) { // buff length must be a multiple of 4
                 buff.push(0);
             }
-            paint_image(new Uint8Array(buff));
+            paint_image(new Uint8Array(buff), Pattern);
         };
     });
 
-    function paint_image(buff) {
+    function paint_image(buff, paint_pattern) {
         let buffw = ImageWidth;
-        let buffh = buff.length / buffw * 4.0 / 3.0;
-        console.log('w:', buffw, ' h:', buffh);
+        let buffh;
+        switch (paint_pattern) {
+        case 0:
+            buffh = buff.length / (buffw * 4);
+            break;
+        case 1:
+            buffh = buff.length / (buffw * 3);
+            break;
+        case 2:
+            buffh = buff.length / (buffw * 1);
+            break;
+        }
+        // console.log('w:', buffw, ' h:', buffh);
         $('#canvas0').css('width', buffw + 'px');
-        $('#canvas0').css('height', buffh / 3 + 'px');
+        $('#canvas0').css('height', buffh + 'px');
         let img = new Image();
         let canvas = document.getElementById('canvas0');
         let ctx = canvas.getContext('2d');
-/*
-        let pixel = ctx.createImageData(new ImageData(Uint8ClampedArray.from(buff), buffw));
-        ctx.putImageData(pixel, 0, 0);
-*/
-        let paint_pattern = 1;
         let pixel = ctx.createImageData(buffw, buffh);
         let w = pixel.width;
         switch (paint_pattern) {
         case 0:
             for(let i = 0; i < buff.length; i++) {
                 pixel.data[i] = buff[i];
-                // if (i % (512 * 1024) == 0) console.log(Math.floor(i * 100 / buff.length) + '% done')
             }
             break;
         case 1:
@@ -55,6 +65,25 @@
                 pixel.data[i+3] = 255;
                 i += 4;
                 j += 3;
+            }
+            break;
+        case 2:
+            for(let i = 0; i < buff.length; i++) {
+                let b0 = buff[i] >> 6;
+                let b1 = (buff[i] & 0x3f) >> 4;
+                let b2 = (buff[i] & 0x0f) >> 2;
+                let b3 = (buff[i] & 0x03);
+                pixel.data[i+0] = b0 << 6;
+                pixel.data[i+1] = b1 << 6;
+                pixel.data[i+2] = b2 << 6;
+                pixel.data[i+3] = b3 << 6;
+                if (i < 20) {
+                    console.log(buff[i],
+                                pixel.data[i+0],
+                                pixel.data[i+1],
+                                pixel.data[i+2],
+                                pixel.data[i+3]);
+                }
             }
             break;
         default:
