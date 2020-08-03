@@ -2,7 +2,7 @@
     "use strict";
 
     const ImageWidth = 512;
-    const Patern = 2;
+    const Pattern = 2;
     // pattern 0: rgba = [d0, d1, d2, d3]
     // pattern 1: rgba = [d0, d1, d2, 0xff]
     // pattern 2: rgba = [d0[7:6], d0[5:4], d0[3:2], d0[1:0]]
